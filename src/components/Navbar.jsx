@@ -1,18 +1,41 @@
+// src/components/Navbar.jsx
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
-  return (
-    <nav className="bg-white shadow sticky top-0 z-10">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold text-gray-800">CodeJudge</Link>
-        <div className="space-x-4">
-          <Link to="/problems" className="text-gray-600 hover:text-black">Problems</Link>
-          <Link to="/create-problem" className="text-gray-600 hover:text-black">Add Problem</Link>
-          <Link to="/login" className="text-gray-600 hover:text-black">Login</Link>
-          <Link to="/register" className="text-gray-600 hover:text-black">Register</Link>
-          <Link to="/submissions" className="text-white hover:underline px-2">Submissions</Link>
+  const { user, logoutUser } = useAuth();
 
-        </div>
+  return (
+    <nav className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center">
+      <Link to="/" className="font-bold text-xl">
+        CodeJudge
+      </Link>
+
+      <div className="flex gap-4 items-center">
+        <Link to="/problems" className="hover:underline">
+          Problems
+        </Link>
+
+        {user ? (
+          <>
+            <span className="text-sm">Welcome, {user.username}</span>
+            <button
+              onClick={logoutUser}
+              className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/login" className="hover:underline">
+              Login
+            </Link>
+            <Link to="/register" className="hover:underline">
+              Register
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );

@@ -7,18 +7,25 @@ export default function Navbar() {
 
   return (
     <nav className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center">
-      <Link to="/" className="font-bold text-xl">
-        CodeJudge
-      </Link>
-
-      <div className="flex gap-4 items-center">
+      <div className="flex items-center space-x-6">
+        <Link to="/" className="font-bold text-xl">
+          CodeJudge
+        </Link>
         <Link to="/problems" className="hover:underline">
           Problems
         </Link>
+        <Link to="/create-problem" className="hover:underline">
+          Create
+        </Link>
+        <Link to="/submissions" className="hover:underline">
+          Submissions
+        </Link>
+      </div>
 
+      <div className="flex items-center space-x-4">
         {user ? (
           <>
-            <span className="text-sm">Welcome, {user.username}</span>
+            <span className="text-sm">Welcome, <strong>{user.username}</strong></span>
             <button
               onClick={logoutUser}
               className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"

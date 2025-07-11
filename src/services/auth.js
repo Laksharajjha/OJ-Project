@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:8080/auth', // adjust if needed
+  baseURL: 'http://localhost:9090/auth', // adjust if needed
   timeout: 5000,
 });
 

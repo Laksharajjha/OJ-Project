@@ -16,4 +16,5 @@ export const runCode = (data) => API.post('/judge/run', data);
 export const fetchSubmissions = () => API.get('/submissions');
 export const submitSolution = (data) => API.post('/submissions', data);
 
+export const executeCode = (data) => API.post('/judge/execute', data);
 

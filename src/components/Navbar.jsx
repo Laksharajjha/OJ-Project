@@ -1,48 +1,86 @@
-// src/components/Navbar.jsx
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Link, NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
   const { user, logoutUser } = useAuth();
 
   return (
-    <nav className="bg-gray-800 text-white px-6 py-3 flex justify-between items-center">
-      <div className="flex items-center space-x-6">
-        <Link to="/" className="font-bold text-xl">
+    <nav className="bg-gray-900 text-white shadow-md px-6 py-3">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
+        {/* Brand */}
+        <Link to="/" className="text-2xl font-bold text-indigo-400 tracking-tight">
           CodeJudge
         </Link>
-        <Link to="/problems" className="hover:underline">
-          Problems
-        </Link>
-        <Link to="/create-problem" className="hover:underline">
-          Create
-        </Link>
-        <Link to="/submissions" className="hover:underline">
-          Submissions
-        </Link>
-      </div>
 
-      <div className="flex items-center space-x-4">
-        {user ? (
-          <>
-            <span className="text-sm">Welcome, <strong>{user.username}</strong></span>
-            <button
-              onClick={logoutUser}
-              className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <Link to="/login" className="hover:underline">
-              Login
-            </Link>
-            <Link to="/register" className="hover:underline">
-              Register
-            </Link>
-          </>
-        )}
+        {/* Navigation Links */}
+        <div className="hidden md:flex space-x-6 text-sm font-medium">
+          <NavLink
+            to="/problems"
+            className={({ isActive }) =>
+              isActive ? "text-indigo-300 underline" : "hover:text-indigo-200"
+            }
+          >
+            Problems
+          </NavLink>
+          <NavLink
+            to="/create-problem"
+            className={({ isActive }) =>
+              isActive ? "text-indigo-300 underline" : "hover:text-indigo-200"
+            }
+          >
+            Create
+          </NavLink>
+          <NavLink
+            to="/submissions"
+            className={({ isActive }) =>
+              isActive ? "text-indigo-300 underline" : "hover:text-indigo-200"
+            }
+          >
+            Submissions
+          </NavLink>
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              isActive ? "text-indigo-300 underline" : "hover:text-indigo-200"
+            }
+          >
+            Dashboard
+          </NavLink>
+        </div>
+
+        {/* Auth Buttons */}
+        <div className="flex items-center space-x-4 text-sm">
+          {user ? (
+            <>
+              <span className="text-gray-300">👋 {user.username}</span>
+              <button
+                onClick={logoutUser}
+                className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded transition"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <NavLink
+                to="/login"
+                className={({ isActive }) =>
+                  isActive ? "text-indigo-300 underline" : "hover:text-indigo-200"
+                }
+              >
+                Login
+              </NavLink>
+              <NavLink
+                to="/register"
+                className={({ isActive }) =>
+                  isActive ? "text-indigo-300 underline" : "hover:text-indigo-200"
+                }
+              >
+                Register
+              </NavLink>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );

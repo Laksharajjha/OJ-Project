@@ -1,13 +1,25 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function CreateProblem() {
+  const { user } = useAuth();
+  const isAdmin = user?.isAdmin;
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [difficulty, setDifficulty] = useState('Easy');
   const [tags, setTags] = useState('');
   const [examples, setExamples] = useState([{ input: '', output: '' }]);
   const [message, setMessage] = useState('');
+
+  if (!isAdmin) {
+    return (
+      <div className="max-w-xl mx-auto mt-10 text-center text-red-600 font-semibold">
+        ❌ You are not authorized to access this page.
+      </div>
+    );
+  }
 
   const handleAddExample = () => {
     setExamples([...examples, { input: '', output: '' }]);

@@ -1,23 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CodeEditor from '../components/editor/CodeEditor';
 import { executeCode } from '../services/api';
 import { motion } from 'framer-motion';
 
-export default function Home() {
-  const [code, setCode] = useState(`public class Main {
+const boilerplateMap = {
+  java: `public class Main {
   public static void main(String[] args) {
-    System.out.println("Hello");
+    System.out.println("Hello, Java!");
   }
-}`);
+}`,
+  cpp: `#include<iostream>
+using namespace std;
+int main() {
+  cout << "Hello, C++!" << endl;
+  return 0;
+}`,
+  python: `print("Hello, Python!")`
+};
+
+export default function Home() {
+  const [language, setLanguage] = useState('java');
+  const [code, setCode] = useState(boilerplateMap['java']);
   const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
+
+  // Update code when language changes
+  useEffect(() => {
+    setCode(boilerplateMap[language]);
+  }, [language]);
 
   const handleRun = async () => {
     setOutput('');
     setError('');
     try {
-      const res = await executeCode({ code, input });
+      const res = await executeCode({ code, input, language });
       setOutput(res.data.output || res.data);
     } catch (err) {
       console.error("❌ Run Code Error:", err);
@@ -54,10 +71,21 @@ export default function Home() {
         transition={{ delay: 0.2, duration: 0.5 }}
         className="max-w-6xl mx-auto mt-12 p-6 bg-white rounded-lg shadow-md"
       >
-        <h2 className="text-3xl font-semibold mb-6 text-indigo-800">🧪 Playground</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-semibold text-indigo-800">🧪 Playground</h2>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none"
+          >
+            <option value="java">Java</option>
+            <option value="cpp">C++</option>
+            <option value="python">Python</option>
+          </select>
+        </div>
 
         <div className="mb-4">
-          <CodeEditor code={code} setCode={setCode} />
+          <CodeEditor code={code} setCode={setCode} language={language} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

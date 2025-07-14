@@ -31,29 +31,34 @@ export default function Dashboard() {
           (sub) => sub.username === user?.username && sub.status === "Success"
         );
 
-        const difficultyCounter = { Easy: 0, Medium: 0, Hard: 0 };
         const activity = {};
+        const uniqueSolvedMap = {};
         const recent = [];
+        const difficultyCounter = { Easy: 0, Medium: 0, Hard: 0 };
 
         const sortedSubs = [...userSubs].sort(
           (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
         );
 
         for (let sub of sortedSubs) {
+          const title = sub.problemTitle;
           const dateKey = new Date(sub.timestamp).toISOString().split("T")[0];
+
           activity[dateKey] = (activity[dateKey] || 0) + 1;
 
-          const difficulty = problemMap[sub.problemTitle] || "Medium";
-          difficultyCounter[difficulty]++;
+          if (!uniqueSolvedMap[title]) {
+            uniqueSolvedMap[title] = true;
 
-          if (!recent.find((r) => r.problemTitle === sub.problemTitle)) {
-            recent.push({ ...sub, difficulty, date: dateKey });
+            const difficulty = problemMap[title] || "Medium";
+            difficultyCounter[difficulty]++;
+
+            if (recent.length < 4) {
+              recent.push({ ...sub, difficulty, date: dateKey });
+            }
           }
-
-          if (recent.length >= 4) break;
         }
 
-        setSubmissions(userSubs);
+        setSubmissions(Object.keys(uniqueSolvedMap)); // Just keys
         setActivityMap(activity);
         setDifficultyCount(difficultyCounter);
         setRecentSolved(recent);

@@ -1,17 +1,26 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
+  const [user, setUser] = useState(null);
+
+  // Load from localStorage on mount
+  useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      const isAdmin = parsedUser.username === 'laksh'; // Hardcoded admin
+      setUser({ ...parsedUser, isAdmin });
+    }
+  }, []);
 
   const loginUser = (userData) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+    const isAdmin = userData.username === 'laksh'; // Hardcoded admin check
+    const updatedUser = { ...userData, isAdmin };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   const logoutUser = () => {

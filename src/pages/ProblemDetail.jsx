@@ -4,15 +4,29 @@ import { fetchProblemById, runCode, submitSolution } from "../services/api";
 import CodeEditor from "../components/editor/CodeEditor";
 import { useAuth } from "../context/AuthContext";
 
-export default function ProblemDetail() {
-  const { id } = useParams();
-  const { user } = useAuth();
-  const [problem, setProblem] = useState(null);
-  const [code, setCode] = useState(`public class Main {
+const boilerplateMap = {
+  java: `public class Main {
   public static void main(String[] args) {
     // your code here
   }
-}`);
+}`,
+  cpp: `#include<iostream>
+using namespace std;
+int main() {
+  // your code here
+  return 0;
+}`,
+  python: `# your code here
+print("Hello from Python")`,
+};
+
+export default function ProblemDetail() {
+  const { id } = useParams();
+  const { user } = useAuth();
+
+  const [problem, setProblem] = useState(null);
+  const [language, setLanguage] = useState("java");
+  const [code, setCode] = useState(boilerplateMap["java"]);
   const [input, setInput] = useState("");
   const [outputData, setOutputData] = useState(null);
   const [error, setError] = useState("");
@@ -23,6 +37,10 @@ export default function ProblemDetail() {
       .catch((err) => console.error("❌ Failed to fetch problem", err));
   }, [id]);
 
+  useEffect(() => {
+    setCode(boilerplateMap[language]);
+  }, [language]);
+
   const handleRun = async () => {
     setOutputData(null);
     setError("");
@@ -30,6 +48,7 @@ export default function ProblemDetail() {
       const res = await runCode({
         code,
         input,
+        language,
         problemId: problem._id?.$oid || problem._id || problem.id,
       });
       setOutputData(res.data);
@@ -51,6 +70,7 @@ export default function ProblemDetail() {
       const res = await runCode({
         code,
         input: sampleInput,
+        language,
         problemId,
       });
 
@@ -100,7 +120,20 @@ export default function ProblemDetail() {
 
       {/* RIGHT: Code Editor + Controls */}
       <div className="bg-white p-6 rounded shadow">
-        <CodeEditor code={code} setCode={setCode} />
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-semibold text-gray-700">Language:</label>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="border p-1 rounded text-sm"
+          >
+            <option value="java">Java</option>
+            <option value="cpp">C++</option>
+            <option value="python">Python</option>
+          </select>
+        </div>
+
+        <CodeEditor code={code} setCode={setCode} language={language} />
 
         <textarea
           placeholder="Custom Input"

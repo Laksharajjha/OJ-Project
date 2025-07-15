@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import { fetchSubmissions, fetchProblems } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 
 export default function Dashboard() {
+  const { username: viewedUser } = useParams();
   const { user } = useAuth();
+  const actualUser = viewedUser || user?.username;
+  const isOwner = user?.username === actualUser;
+
   const [submissions, setSubmissions] = useState([]);
   const [difficultyCount, setDifficultyCount] = useState({
     Easy: 0,
@@ -13,7 +19,16 @@ export default function Dashboard() {
   const [activityMap, setActivityMap] = useState({});
   const [recentSolved, setRecentSolved] = useState([]);
 
+  const [editing, setEditing] = useState(false);
+  const [profilePic, setProfilePic] = useState("");
+  const [socials, setSocials] = useState({ github: "", linkedin: "" });
+  const [shareMessage, setShareMessage] = useState("");
+
   useEffect(() => {
+    const storedProfile = JSON.parse(localStorage.getItem("profile_" + actualUser)) || {};
+    setProfilePic(storedProfile.profilePic || "");
+    setSocials(storedProfile.socials || { github: "", linkedin: "" });
+
     const load = async () => {
       try {
         const [subsRes, probsRes] = await Promise.all([
@@ -28,7 +43,7 @@ export default function Dashboard() {
         });
 
         const userSubs = subsRes.data.filter(
-          (sub) => sub.username === user?.username && sub.status === "Success"
+          (sub) => sub.username === actualUser && sub.status === "Success"
         );
 
         const activity = {};
@@ -58,7 +73,7 @@ export default function Dashboard() {
           }
         }
 
-        setSubmissions(Object.keys(uniqueSolvedMap)); // Just keys
+        setSubmissions(Object.keys(uniqueSolvedMap));
         setActivityMap(activity);
         setDifficultyCount(difficultyCounter);
         setRecentSolved(recent);
@@ -67,12 +82,148 @@ export default function Dashboard() {
       }
     };
 
-    if (user) load();
-  }, [user]);
+    if (actualUser) load();
+  }, [actualUser]);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "iyiuzq8w");
+
+    try {
+      const res = await axios.post(
+        "https://api.cloudinary.com/v1_1/dc8trwtsx/image/upload",
+        formData
+      );
+      const url = res.data.secure_url;
+      setProfilePic(url);
+
+      const updated = {
+        profilePic: url,
+        socials,
+      };
+      localStorage.setItem("profile_" + actualUser, JSON.stringify(updated));
+    } catch (err) {
+      console.error("❌ Upload failed", err);
+    }
+  };
+
+  const handleSave = () => {
+    const updated = {
+      profilePic,
+      socials,
+    };
+    localStorage.setItem("profile_" + actualUser, JSON.stringify(updated));
+    setEditing(false);
+  };
+
+  const handleShare = () => {
+    const shareUrl = `${window.location.origin}/dashboard/${actualUser}`;
+    navigator.clipboard.writeText(shareUrl);
+    setShareMessage("🔗 Profile link copied!");
+    setTimeout(() => setShareMessage(""), 2000);
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
-      <h2 className="text-3xl font-bold mb-6 text-indigo-800">My Analytics</h2>
+      {/* Profile Info */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <div className="relative w-20 h-20">
+            <img
+              src={profilePic || "/default-avatar.png"}
+              alt="Profile"
+              className="w-20 h-20 rounded-full border object-cover"
+            />
+            {isOwner && (
+              <input
+                type="file"
+                accept="image/*"
+                className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                onChange={handleUpload}
+              />
+            )}
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">{actualUser}</h2>
+            {editing ? (
+              <div className="space-x-2 mt-2">
+                <input
+                  type="text"
+                  placeholder="GitHub"
+                  className="border p-1 rounded text-sm"
+                  value={socials.github}
+                  onChange={(e) =>
+                    setSocials({ ...socials, github: e.target.value })
+                  }
+                />
+                <input
+                  type="text"
+                  placeholder="LinkedIn"
+                  className="border p-1 rounded text-sm"
+                  value={socials.linkedin}
+                  onChange={(e) =>
+                    setSocials({ ...socials, linkedin: e.target.value })
+                  }
+                />
+              </div>
+            ) : (
+              <div className="text-sm text-gray-600 mt-1 space-x-4">
+                {socials.github && (
+                  <a
+                    href={socials.github}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline text-blue-600"
+                  >
+                    GitHub
+                  </a>
+                )}
+                {socials.linkedin && (
+                  <a
+                    href={socials.linkedin}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline text-blue-600"
+                  >
+                    LinkedIn
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-3">
+          {isOwner && (
+            editing ? (
+              <button
+                onClick={handleSave}
+                className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700"
+              >
+                Save
+              </button>
+            ) : (
+              <button
+                onClick={() => setEditing(true)}
+                className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+              >
+                Edit
+              </button>
+            )
+          )}
+          <button
+            onClick={handleShare}
+            className="bg-indigo-600 text-white px-4 py-1 rounded hover:bg-indigo-700"
+          >
+            Share
+          </button>
+        </div>
+      </div>
+      {shareMessage && (
+        <div className="text-green-600 font-medium mb-4">{shareMessage}</div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -112,7 +263,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Solved */}
+      {/* Recently Solved */}
       <div className="bg-white shadow rounded-lg p-4">
         <h3 className="text-lg font-semibold mb-4">Recently Solved</h3>
         {recentSolved.length === 0 ? (
@@ -120,10 +271,7 @@ export default function Dashboard() {
         ) : (
           <ul className="space-y-3">
             {recentSolved.map((p, i) => (
-              <li
-                key={i}
-                className="flex justify-between items-center border-b pb-2"
-              >
+              <li key={i} className="flex justify-between items-center border-b pb-2">
                 <div>
                   <h4 className="font-medium">{p.problemTitle}</h4>
                   <p className="text-xs text-gray-500">{p.date}</p>

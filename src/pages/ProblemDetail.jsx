@@ -1,8 +1,14 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { fetchProblemById, runCode, submitSolution } from "../services/api";
+import {
+  fetchProblemById,
+  runCode,
+  submitSolution,
+  getAISuggestion,
+} from "../services/api";
 import CodeEditor from "../components/editor/CodeEditor";
 import { useAuth } from "../context/AuthContext";
+import ReactMarkdown from "react-markdown";
 
 const boilerplateMap = {
   java: `public class Main {
@@ -30,6 +36,7 @@ export default function ProblemDetail() {
   const [input, setInput] = useState("");
   const [outputData, setOutputData] = useState(null);
   const [error, setError] = useState("");
+  const [aiFeedback, setAIFeedback] = useState("");
 
   useEffect(() => {
     fetchProblemById(id)
@@ -76,7 +83,9 @@ export default function ProblemDetail() {
 
       const data = res.data;
       const actualOutput = (data.output || "").trim();
-      const verdict = data.verdict || (actualOutput === expectedOutput ? "Accepted ✅" : "Wrong Answer ❌");
+      const verdict =
+        data.verdict ||
+        (actualOutput === expectedOutput ? "Accepted ✅" : "Wrong Answer ❌");
 
       await submitSolution({
         problemTitle: problem.title,
@@ -97,11 +106,26 @@ export default function ProblemDetail() {
     }
   };
 
+  const handleAISuggestion = async () => {
+    setAIFeedback("Fetching suggestion...");
+    try {
+      const aiRes = await getAISuggestion({
+        code,
+        language,
+        problem: problem.description,
+      });
+      setAIFeedback(aiRes.data.response || "No suggestion received.");
+    } catch (err) {
+      console.error(err);
+      setAIFeedback("❌ Failed to fetch suggestion.");
+    }
+  };
+
   if (!problem) return <div className="p-4">Loading...</div>;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-7xl mx-auto p-6">
-      {/* LEFT: Problem Description */}
+      {/* LEFT: Problem Description + AI Suggestion */}
       <div className="bg-white p-6 rounded shadow overflow-y-auto">
         <h2 className="text-2xl font-bold mb-2">{problem.title}</h2>
         <p className="whitespace-pre-line mb-4">{problem.description}</p>
@@ -116,9 +140,25 @@ export default function ProblemDetail() {
             {problem.sampleOutput || "None"}
           </pre>
         </div>
+
+        <button
+          onClick={handleAISuggestion}
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 mt-2"
+        >
+          🤖 Get AI Suggestion
+        </button>
+
+        {aiFeedback && (
+          <div className="mt-6 border rounded-lg p-4 bg-blue-50 shadow space-y-2 animate-fade-in">
+            <h3 className="font-semibold text-lg text-blue-800 flex items-center gap-2">
+              🤖 AI Suggestion
+            </h3>
+            <ReactMarkdown>{aiFeedback}</ReactMarkdown>
+          </div>
+        )}
       </div>
 
-      {/* RIGHT: Code Editor + Controls */}
+      {/* RIGHT: Code Editor */}
       <div className="bg-white p-6 rounded shadow">
         <div className="flex items-center justify-between mb-2">
           <label className="text-sm font-semibold text-gray-700">Language:</label>
@@ -163,11 +203,15 @@ export default function ProblemDetail() {
           <div className="mt-6 border rounded-lg p-4 bg-gray-50 shadow space-y-4 animate-fade-in">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg text-gray-800">📤 Output</h3>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                outputData.verdict.includes("✅") ? "bg-green-100 text-green-700" :
-                outputData.verdict.includes("❌") ? "bg-red-100 text-red-700" :
-                "bg-yellow-100 text-yellow-700"
-              }`}>
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  outputData.verdict.includes("✅")
+                    ? "bg-green-100 text-green-700"
+                    : outputData.verdict.includes("❌")
+                    ? "bg-red-100 text-red-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
+              >
                 {outputData.verdict}
               </span>
             </div>
@@ -181,7 +225,9 @@ export default function ProblemDetail() {
 
             {outputData.expectedOutput && (
               <div>
-                <p className="text-sm text-gray-600 font-semibold mb-1">Expected Output:</p>
+                <p className="text-sm text-gray-600 font-semibold mb-1">
+                  Expected Output:
+                </p>
                 <pre className="bg-white border p-2 rounded text-gray-800 whitespace-pre-wrap">
                   {outputData.expectedOutput}
                 </pre>

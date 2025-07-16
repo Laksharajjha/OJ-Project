@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API = axios.create({
   baseURL: 'https://codejudgebackend.onrender.com', // Your backend API
-  timeout: 15000,
+  timeout: 1500000,
 });
 
 // 🧩 Problem Services

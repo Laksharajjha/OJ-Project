@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:9090/', // Your backend API
+  baseURL: 'https://codejudgebackend.onrender.com', // Your backend API
   timeout: 15000,
 });
 

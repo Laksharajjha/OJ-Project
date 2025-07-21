@@ -9,12 +9,6 @@ const boilerplateMap = {
     System.out.println("Hello, Java!");
   }
 }`,
-  cpp: `#include<iostream>
-using namespace std;
-int main() {
-  cout << "Hello, C++!" << endl;
-  return 0;
-}`,
   python: `print("Hello, Python!")`
 };
 
@@ -79,7 +73,6 @@ export default function Home() {
             className="border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none"
           >
             <option value="java">Java</option>
-            <option value="cpp">C++</option>
             <option value="python">Python</option>
           </select>
         </div>

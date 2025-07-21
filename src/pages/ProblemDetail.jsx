@@ -16,12 +16,6 @@ const boilerplateMap = {
     // your code here
   }
 }`,
-  cpp: `#include<iostream>
-using namespace std;
-int main() {
-  // your code here
-  return 0;
-}`,
   python: `# your code here
 print("Hello from Python")`,
 };
@@ -168,7 +162,6 @@ export default function ProblemDetail() {
             className="border p-1 rounded text-sm"
           >
             <option value="java">Java</option>
-            <option value="cpp">C++</option>
             <option value="python">Python</option>
           </select>
         </div>
